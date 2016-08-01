@@ -5,7 +5,7 @@ Easiest way to do this is to:
 1. Install Node.js (https://nodejs.org/en/) - LTS version is good
 2. Once installed, type `npm -version` in terminal/cmd to make sure it installed correctly
 3. Now run `npm install http-server -g` - This will install files needed to run http-server
-2. Clone this repository and run `http-server` from the home directory - This will create the server
+2. Clone this repository and run `http-server` from the ENSO directory - This will create the server
 3. Visit localhost:8080
 
 
