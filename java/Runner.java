@@ -8,37 +8,38 @@ public class Runner {
 
 	public static void main(String[] args) {
 		String output = "[";
-		try (BufferedReader br = new BufferedReader(new FileReader("../data/raw.data")))
+		try (BufferedReader br = new BufferedReader(new FileReader("../data/raw2.data")))
 		{
-
 			String sCurrentLine;
+			int year = 1950;
+			boolean init = false;
+			double data[] = new double[12];
+			int index = 0;
+			int currentYear = 0;
+
 
 			while ((sCurrentLine = br.readLine()) != null) {
-				output += "{";
-                String split[] = sCurrentLine.split("\\s+");
-				String year = split[1];
-				output += "\"year\":\"";
-				output += year;
-				output += "\",";
-                double dataPoints[] = new double[12];
-				for (int i = 0; i < 12; i++) {
-                    dataPoints[i] = Double.parseDouble(split[i+2]);
-                }
+				String split[] = sCurrentLine.split("\\s+");
+				currentYear = Integer.parseInt(split[0]);
 
-				output += "\"data\":[";
-				for (int i = 0; i < 12; i++) {
-                    output += "[";
-					output += (i+1) + "," + dataPoints[i];
-					output += "]";
-					if (i != 11) {
-						output += ",";
+				//Add to output
+				if (year != currentYear) {
+					output += "{\"year\":" + year + ",";
+					output += "\"data\":[";
+					for (int i = 0; i < 12; i++) {
+						output += "[";
+						output += i + 1 + "," + data[i] + "]";
+						if (i != 11) {
+							output += ",";
+						}
 					}
-                }
+					output += "]},";
+					index = 0;
+					year = currentYear;
+				}
+				data[index] = Double.parseDouble(split[4]);
+				index++;
 
-				output += "]";
-
-
-				output += "},";
 			}
 
 		} catch (IOException e) {
@@ -49,6 +50,8 @@ public class Runner {
 		//Remove extra comma
 		output = output.substring(0, length - 1);
 		output += "]";
+
+		//Output JSON
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter("../data/output.json"));
 			writer.write(output);
