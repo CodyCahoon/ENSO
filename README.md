@@ -1,6 +1,6 @@
 In order to run, we need to be running a server since we are using 'cross-origin' data with the json files
 
-Easiest way to do this is to:
+One way to do this is to:
 
 1. Install Node.js (https://nodejs.org/en/) - LTS version is good
 2. Once installed, type `npm -version` in terminal/cmd to make sure it installed correctly
@@ -8,6 +8,10 @@ Easiest way to do this is to:
 2. Clone this repository and run `http-server` from the ENSO directory - This will create the server
 3. Visit localhost:8080
 
+Alternative way using Python is to:
+1. Open terminal, cd to directory folder containing all of our content
+2. Run "python -m SimpleHTTPServer" which will serve on port 8000 by default
+3. Visit localhost:8000
 
 To compile/run the java code, cd into java folder and run:
 
