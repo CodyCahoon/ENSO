@@ -16,9 +16,6 @@
         end   : 2016
     };
 
-    //Create margins and width/height for SVG
-    var margin = {top: 20, right: 200, bottom: 0, left: 20};
-
     var $graph = $("#graph");
     var width = $graph.width();
     var height = $graph.height();
