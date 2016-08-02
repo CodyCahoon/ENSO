@@ -2,6 +2,28 @@ text {
     font-family: 'Lato';
 }
 
-svg {
-    overflow: scroll;
+#graph {
+    width: 6000px;
+    height: 700px;
+}
+
+g.tick line {
+    stroke: black;
+}
+
+g.tick text {
+    font-weight: 300;
+}
+
+path.domain {
+    opacity: 0;
+}
+
+text.value {
+    font-size: 14px;
+    display: none;
+}
+
+text.value:hover {
+    cursor: pointer;
 }
