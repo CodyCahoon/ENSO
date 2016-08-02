@@ -36,19 +36,30 @@ public class Runner {
 					output += "]},";
 					index = 0;
 					year = currentYear;
+					data = new double[12];
 				}
 				data[index] = Double.parseDouble(split[4]);
 				index++;
+			}
 
+			//Current year still has values
+			if (index != 1) {
+				output += "{\"year\":" + year + ",";
+				output += "\"data\":[";
+				for (int i = 0; i < 12; i++) {
+					output += "[";
+					output += i + 1 + "," + data[i] + "]";
+					if (i != 11) {
+						output += ",";
+					}
+				}
+				output += "]}";
 			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		int length = output.length();
 
-		//Remove extra comma
-		output = output.substring(0, length - 1);
 		output += "]";
 
 		//Output JSON
