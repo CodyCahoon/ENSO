@@ -20,8 +20,6 @@
         end   : 2016
     };
 
-    var dataSetLength = 10;
-
     //Data points
     var nino34 = [];
 
@@ -31,12 +29,9 @@
     //Makes first and last data point not be cut off by edge
     var padding = 50;
 
-
     //Create SVG element
     var svg = d3.select("#graph");
     var yAx = d3.select("#y-axis");
-        //.append("g")
-    	//.attr("transform", "translate(100, 25)");
 
     var $graph = $("#graph");
     var width = 0,
