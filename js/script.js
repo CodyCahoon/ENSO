@@ -20,9 +20,8 @@
         end   : 2016
     };
 
-    var $graph = $("#graph");
-    var width = $graph.width();
-    var height = $graph.height();
+    //Data points
+    var nino34 = [];
 
     //Scale factor for the circles
     var scaleAmount = 10;
@@ -35,23 +34,27 @@
 
     //Create SVG element
     var svg = d3.select("#graph")
-    	.append("g")
+        .append("g")
     	.attr("transform", "translate(100, 25)");
 
-    //Create scales to space everything correctly
-    var xScale = d3.scale.linear()
-        .domain([yearRange.start, yearRange.end])
-        .range([0, width - domainOffset]);
+    var $graph = $("#graph");
+    var width = 0,
+        height = 0,
+        xScale,
+        yScale;
 
-    var yScale = d3.scale.linear()
-        .domain([1, 12])
-        .range([0 + rangeOffset, height - rangeOffset]);
+    $(window).resize(redrawSVG);
 
+    updateScales();
     createAxis();
 
     //Load in JSON data
-    d3.json("data/data.json", function(data) {
+    d3.json("data/nino34.json", function(data) {
+        nino34 = data;
+        displayData(nino34);
+    });
 
+    function displayData(data) {
         var currentYear = yearRange.start;
         //Go through every data element
     	for (var j = 0; j < data.length; j++) {
@@ -130,7 +133,36 @@
             var year = $(this).attr("data-year");
             console.log(month, year);
         }
-    });
+    }
+
+    /**
+     * Clears out old drawing, update scales, and redraws
+     * axis and data points for current selection (nino34 only so far)
+     */
+    function redrawSVG() {
+        svg.selectAll("*").remove(); //Clears SVG
+        updateScales();
+        createAxis();
+        displayData(nino34);
+    }
+
+    /**
+     * Updates the width & height of container to reposition
+     * axis and data points
+     */
+    function updateScales() {
+        width = $graph.width();
+        height = $graph.height();
+
+        //Create scales to space everything correctly
+        xScale = d3.scale.linear()
+            .domain([yearRange.start, yearRange.end])
+            .range([0, width - domainOffset]);
+
+        yScale = d3.scale.linear()
+            .domain([1, 12])
+            .range([0 + rangeOffset, height - rangeOffset]);
+    }
 
     /**
      * Creates x-axis and y-axis
