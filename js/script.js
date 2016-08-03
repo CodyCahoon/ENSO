@@ -5,10 +5,14 @@
     var monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                       "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-    //Create color scale
-    var colors = ["rgb(46, 103, 230)", "rgb(170, 178, 189)", "rgb(254, 60, 60)"];
-    var oniRange = [-3, 0, 3];
-    var colorScale = d3.scale.linear().domain(oniRange).range(colors);
+    // Create discretizied diverging color scale
+    // Colors taken from Cynthia Brewer's "ColorBrewer." Diverging, 6-step blue-red.
+    var colors = ['#2166ac', '#67a9cf', '#d1e5f0', '#fddbc7', '#ef8a62', '#b2182b'];
+    // Range denotes discretized bins (min to -2.51 is first HEX, -2.5 to -2.01 is next, etc.)
+    var oniRange = [-2, -1, 0, 1, 2, 3];
+    var colorScale = d3.scale.threshold()
+      .domain(oniRange)
+      .range(colors);
 
     //Set data year range
     var yearRange = {
