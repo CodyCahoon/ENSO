@@ -2,8 +2,8 @@
     'use strict';
 
     //Set month names
-    var monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     // Create discretizied diverging color scale
     // Colors taken from Cynthia Brewer's "ColorBrewer." Diverging, 6-step blue-red.
