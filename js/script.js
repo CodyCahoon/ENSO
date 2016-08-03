@@ -10,7 +10,7 @@
     var colors = ['#2166ac', '#67a9cf', '#d1e5f0', '#fddbc7', '#ef8a62', '#b2182b'];
     // Range denotes discretized bins (min to -2.51 is first HEX, -2.5 to -2.01 is next, etc.)
     var oniRange = [-2, -1, 0, 1, 2, 3];
-    var colorScale = d3.scale.threshold()
+    var colorScale = d3.scaleThreshold()
       .domain(oniRange)
       .range(colors);
 
@@ -27,15 +27,11 @@
     var scaleAmount = 10;
 
     //Makes first and last data point not be cut off by edge
-    var rangeOffset = 50;
-
-    //Makes the 2016 dataset visible
-    var domainOffset = 150;
+    var padding = 50;
 
     //Create SVG element
-    var svg = d3.select("#graph")
-        .append("g")
-    	.attr("transform", "translate(100, 25)");
+    var svg = d3.select("#graph");
+    var yAx = d3.select("#y-axis");
 
     var $graph = $("#graph");
     var width = 0,
@@ -141,6 +137,7 @@
      */
     function redrawSVG() {
         svg.selectAll("*").remove(); //Clears SVG
+        yAx.selectAll("*").remove();
         updateScales();
         createAxis();
         displayData(nino34);
@@ -155,13 +152,13 @@
         height = $graph.height();
 
         //Create scales to space everything correctly
-        xScale = d3.scale.linear()
+        xScale = d3.scaleLinear()
             .domain([yearRange.start, yearRange.end])
-            .range([0, width - domainOffset]);
+            .range([0 + padding, width - padding]);
 
-        yScale = d3.scale.linear()
+        yScale = d3.scaleLinear()
             .domain([1, 12])
-            .range([0 + rangeOffset, height - rangeOffset]);
+            .range([0 + padding, height - padding]);
     }
 
     /**
@@ -176,9 +173,7 @@
      * Creates x-axis
      */
     function createXAxis() {
-        var xAxis = d3.svg.axis()
-        	.scale(xScale)
-        	.orient("top")
+        var xAxis = d3.axisTop(xScale)
             .ticks(yearRange.end - yearRange.start)
             .tickFormat(function(d) {
                 return d.toString();
@@ -186,7 +181,7 @@
 
     	svg.append("g")
     		.attr("class", "x axis")
-    		.attr("transform", "translate(0, 0)")
+            .attr("transform", "translate(0, 25)")
     		.call(xAxis);
     }
 
@@ -194,17 +189,14 @@
      * Creates y-axis
      */
     function createYAxis() {
-        var yAxis = d3.svg.axis()
-            .scale(yScale)
-            .orient("left")
+        var yAxis = d3.axisLeft(yScale)
             .tickFormat(function (d) {
                 return monthNames[d - 1];
             });
 
-    	svg.append("g")
+    	yAx.append("g")
     		.attr("class", "y axis")
-    		.attr("transform", "translate(-50, 0)")
-            .style("position", "fixed")
+    		.attr("transform", "translate(50, 0)")
     		.call(yAxis);
     }
 })();
