@@ -1,57 +1,45 @@
 (function(){
     'use strict';
 
-    //Set month names
-    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-    // Create discretizied diverging color scale
-    // Colors taken from Cynthia Brewer's "ColorBrewer." Diverging, 6-step blue-red.
-    var colors = ['#2166ac', '#67a9cf', '#d1e5f0', '#fddbc7', '#ef8a62', '#b2182b'];
-    // Range denotes discretized bins (min to -2.51 is first HEX, -2.5 to -2.01 is next, etc.)
-    var oniRange = [-2, -1, 0, 1, 2, 3];
-    var colorScale = d3.scaleThreshold()
-      .domain(oniRange)
-      .range(colors);
-
-    //Set data year range
-    var yearRange = {
-        start : 1950,
-        end   : 2016
-    };
-
     //Data points
-    var nino34 = [];
-
-    //Scale factor for the circles
-    var scaleAmount = 10;
+    var nino34 = {
+        max : 0,
+        data: null
+    };
 
     //Makes first and last data point not be cut off by edge
     var padding = 50;
 
+    //Space between adjacent columns
+    var spaceBetween = 30;
+
     //Create SVG element
     var svg = d3.select("#graph");
-    var yAx = d3.select("#y-axis");
+    var yAxis = d3.select("#y-axis");
 
     var $graph = $("#graph");
     var width = 0,
         height = 0,
         xScale,
-        yScale;
+        yScale,
+        rScale;
 
     $(window).resize(redrawSVG);
 
-    updateScales();
-    createAxis();
-
     //Load in JSON data
     d3.json("data/nino34.json", function(data) {
-        nino34 = data;
-        displayData(nino34);
+        nino34.data = data;
+        nino34.max = d3.max(data, function(d){
+            return d3.max(d.data, function (val) {
+                return Math.abs(val[1]);
+            });
+        });
+        redrawSVG();
     });
 
     function displayData(data) {
         var currentYear = yearRange.start;
+        var groupWidth = 2 * (rScale(nino34.max) + spaceBetween/2);
         //Go through every data element
     	for (var j = 0; j < data.length; j++) {
             currentYear = yearRange.start + j;
@@ -59,12 +47,11 @@
             .on("mouseover", mouseover)
             .on("mouseout", mouseout);
 
-            //Adds an invisible box to be able to show values
-            //when not hovering over a circle
+            //Invisible box to enable hovering in any place in group
             g.append("rect")
-                .attr("x", xScale(currentYear) - 30)
+                .attr("x", xScale(currentYear) - groupWidth/2)
     			.attr("y", 0)
-                .attr("width", 60)
+                .attr("width", groupWidth)
                 .attr("height", height)
                 .attr("fill", "transparent");
 
@@ -81,7 +68,7 @@
     		circles
     			.attr("cx", xScale(currentYear))
     			.attr("cy", function(d) { return yScale(d[0])})
-    			.attr("r",  function(d) { return Math.abs(d[1] * scaleAmount); })
+    			.attr("r",  function(d) { return rScale(Math.abs(d[1])); })
     			.style("fill", function(d) { return colorScale(d[1]); });
 
     		text
@@ -136,11 +123,19 @@
      * axis and data points for current selection (nino34 only so far)
      */
     function redrawSVG() {
-        svg.selectAll("*").remove(); //Clears SVG
-        yAx.selectAll("*").remove();
+        clearSVG();
         updateScales();
         createAxis();
-        displayData(nino34);
+        displayData(nino34.data);
+    }
+
+
+    /**
+     * Removes graph and y-axis before redrawing
+     */
+    function clearSVG() {
+        svg.selectAll("*").remove();
+        yAxis.selectAll("*").remove();
     }
 
     /**
@@ -148,17 +143,23 @@
      * axis and data points
      */
     function updateScales() {
-        width = $graph.width();
         height = $graph.height();
+
+        rScale = d3.scaleLinear()
+            .domain([0, nino34.max])
+            .range([0, (height - (2*padding)) / 24]);
+
+        width = nino34.data.length * (rScale(nino34.max) * 2 + spaceBetween);
+        $graph.width(width);
 
         //Create scales to space everything correctly
         xScale = d3.scaleLinear()
             .domain([yearRange.start, yearRange.end])
-            .range([0 + padding, width - padding]);
+            .range([padding, width - padding]);
 
         yScale = d3.scaleLinear()
             .domain([1, 12])
-            .range([0 + padding, height - padding]);
+            .range([padding, height - padding]);
     }
 
     /**
@@ -173,7 +174,7 @@
      * Creates x-axis
      */
     function createXAxis() {
-        var xAxis = d3.axisTop(xScale)
+        var x = d3.axisTop(xScale)
             .ticks(yearRange.end - yearRange.start)
             .tickFormat(function(d) {
                 return d.toString();
@@ -182,21 +183,21 @@
     	svg.append("g")
     		.attr("class", "x axis")
             .attr("transform", "translate(0, 25)")
-    		.call(xAxis);
+    		.call(x);
     }
 
     /**
      * Creates y-axis
      */
     function createYAxis() {
-        var yAxis = d3.axisLeft(yScale)
+        var y = d3.axisLeft(yScale)
             .tickFormat(function (d) {
                 return monthNames[d - 1];
             });
 
-    	yAx.append("g")
+    	yAxis.append("g")
     		.attr("class", "y axis")
     		.attr("transform", "translate(50, 0)")
-    		.call(yAxis);
+    		.call(y);
     }
 })();
