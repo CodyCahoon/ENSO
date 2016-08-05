@@ -11,7 +11,7 @@
     var padding = 50;
 
     //Space between adjacent columns
-    var spaceBetween = 30;
+    var spaceBetween = 10;
 
     //Create SVG element
     var svg = d3.select("#graph");
