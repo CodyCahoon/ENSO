@@ -38,11 +38,11 @@
     });
 
     function displayData(data) {
-        var currentYear = yearRange.start;
+        var currentYear = 0;
         var groupWidth = 2 * (rScale(nino34.max) + spaceBetween/2);
-        //Go through every data element
+
     	for (var j = 0; j < data.length; j++) {
-            currentYear = yearRange.start + j;
+            currentYear = data[j]['year'];
     		var g = svg.append("g").attr("class", "year")
             .on("mouseover", mouseover)
             .on("mouseout", mouseout);
@@ -67,23 +67,34 @@
 
     		circles
     			.attr("cx", xScale(currentYear))
-    			.attr("cy", function(d) { return yScale(d[0])})
-    			.attr("r",  function(d) { return rScale(Math.abs(d[1])); })
-    			.style("fill", function(d) { return colorScale(d[1]); });
+    			.attr("cy",    function(d) { return yScale(d[0])})
+    			.attr("r",     function(d) { return rScale(Math.abs(d[1])); })
+                .attr("class", function(d) { return colorScale(d[1])})
 
     		text
-    			.attr("x", xScale(currentYear) - 17.5)
+    			.attr("x", function(d) {
+                    var x = xScale(currentYear);
+                    return d[1] >= 0 ? x - 23 : x - 20;
+                })
     			.attr("y", function(d) { return yScale(d[0]) + 5})
-    			.attr("class", "value")
                 .attr("data-year", currentYear)
     			.text(function(d){
                     var value = d[1].toFixed(2);
                     return value >= 0 ? '+' + value : value;
                 })
-    			.style("fill", function(d) { return colorScale(d[1]); })
-                .on("click", clickDataPoint);
-    	};
+                .attr("class", function (d) {
+                    if (d[1] < 0) {
+                        return "value level-1";
+                    } else {
+                        return "value level-4";
+                    }
+                })
+                .on("click", clickDataPoint)
+                .on("mouseenter", showCurrentMonth)
+                .on("mouseleave", hideCurrentMonth);
 
+
+    	};
 
     	/**
     	 * Called when entering invisible box for each year,
@@ -91,18 +102,17 @@
     	 */
     	function mouseover() {
     		var g = d3.select(this).node();
-    		d3.select(g).selectAll("circle").style("display","none");
-    		d3.select(g).selectAll("text.value").style("display","block");
+    		d3.select(g).selectAll("circle").style("opacity", "0");
+    		d3.select(g).selectAll("text.value").style("opacity", "1");
     	}
-
 
     	/**
     	 * Called when leaving the invisible box for each year
     	 */
     	function mouseout() {
     		var g = d3.select(this).node();
-    		d3.select(g).selectAll("circle").style("display","block");
-    		d3.select(g).selectAll("text.value").style("display","none");
+    		d3.select(g).selectAll("circle").style("opacity", "1");
+    		d3.select(g).selectAll("text.value").style("opacity","0");
     	}
 
         /**
@@ -115,6 +125,55 @@
             var month = monthNames[index];
             var year = $(this).attr("data-year");
             console.log(month, year);
+        }
+
+        /**
+         * Shows all of the points in a given row/month
+         *
+         * @param  {array} d     data being passed in
+         * @param  {integer} index index of element
+         */
+        function showCurrentMonth(d, index) {
+            var month = index + 1;
+
+            //Hide all circles for same month
+            d3.selectAll("circle").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "0");
+                }
+            });
+
+            //Show all text for same month
+            d3.selectAll("text.value").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "1");
+                }
+            });
+        }
+
+
+        /**
+         * Hides all of the points in a given row/month
+         *
+         * @param  {array} d     data being passed in
+         * @param  {integer} index index of element
+         */
+        function hideCurrentMonth(d, index) {
+            var month = index + 1;
+
+            //Shows all circles for same month
+            d3.selectAll("circle").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "1");
+                }
+            });
+
+            //Hides all text for same month
+            d3.selectAll("text.value").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "0");
+                }
+            });
         }
     }
 
@@ -147,7 +206,7 @@
 
         rScale = d3.scaleLinear()
             .domain([0, nino34.max])
-            .range([0, (height - (2*padding)) / 24]);
+            .range([0.5, (height - (2*padding)) / 24]);
 
         width = nino34.data.length * (rScale(nino34.max) * 2 + spaceBetween);
         $graph.width(width);
