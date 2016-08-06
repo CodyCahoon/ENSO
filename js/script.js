@@ -11,7 +11,7 @@
     var padding = 50;
 
     //Space between adjacent columns
-    var spaceBetween = 60;
+    var spaceBetween = 10;
 
     //Create SVG element
     var svg = d3.select("#graph");
@@ -69,7 +69,7 @@
     			.attr("cx", xScale(currentYear))
     			.attr("cy",    function(d) { return yScale(d[0])})
     			.attr("r",     function(d) { return rScale(Math.abs(d[1])); })
-                .attr("class", function(d) { return colorScale(d[1])});
+                .attr("class", function(d) { return colorScale(d[1])})
 
     		text
     			.attr("x", function(d) {
@@ -82,8 +82,18 @@
                     var value = d[1].toFixed(2);
                     return value >= 0 ? '+' + value : value;
                 })
-                .attr("class", function (d) { return "value " + colorScale(d[1])})
+                .attr("class", function (d) {
+                    if (d[1] < 0) {
+                        return "value level-1";
+                    } else {
+                        return "value level-4";
+                    }
+                })
                 .on("click", clickDataPoint)
+                .on("mouseenter", showCurrentMonth)
+                .on("mouseleave", hideCurrentMonth);
+
+
     	};
 
     	/**
@@ -93,9 +103,8 @@
     	function mouseover() {
     		var g = d3.select(this).node();
     		d3.select(g).selectAll("circle").style("opacity", "0");
-    		d3.select(g).selectAll("text.value").style("opacity","1");
+    		d3.select(g).selectAll("text.value").style("opacity", "1");
     	}
-
 
     	/**
     	 * Called when leaving the invisible box for each year
@@ -116,6 +125,55 @@
             var month = monthNames[index];
             var year = $(this).attr("data-year");
             console.log(month, year);
+        }
+
+        /**
+         * Shows all of the points in a given row/month
+         *
+         * @param  {array} d     data being passed in
+         * @param  {integer} index index of element
+         */
+        function showCurrentMonth(d, index) {
+            var month = index + 1;
+
+            //Hide all circles for same month
+            d3.selectAll("circle").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "0");
+                }
+            });
+
+            //Show all text for same month
+            d3.selectAll("text.value").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "1");
+                }
+            });
+        }
+
+
+        /**
+         * Hides all of the points in a given row/month
+         *
+         * @param  {array} d     data being passed in
+         * @param  {integer} index index of element
+         */
+        function hideCurrentMonth(d, index) {
+            var month = index + 1;
+
+            //Shows all circles for same month
+            d3.selectAll("circle").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "1");
+                }
+            });
+
+            //Hides all text for same month
+            d3.selectAll("text.value").each(function(data){
+                if (data[0] === month) {
+                    d3.select(this).style("opacity", "0");
+                }
+            });
         }
     }
 

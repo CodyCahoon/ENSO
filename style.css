@@ -62,7 +62,7 @@ text.value {
 }
 
 text.value:hover {
-    cursor: pointer;
+    cursor: crosshair;
 }
 
 .axis {
