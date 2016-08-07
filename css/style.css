@@ -75,12 +75,10 @@ text.value {
     transition: opacity 0.1s;
 }
 
-
 @media only screen and (max-width: 1200px) {
 
    .axis,
    text.value {
        font-size: 0.75em;
    }
-
 }
