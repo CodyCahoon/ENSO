@@ -1,28 +1,26 @@
 (function(){
     'use strict';
 
+    //Current displayed value in chart
     var currentENSO = {
         data: null,
         max: 0,
         scaledMax : 0
     };
 
-    //Data points
     var nino34 = {
         data: null,
         max : 0
     };
 
-    //Makes first and last data point not be cut off by edge
+    //Inner padding for graph, prevents data points from being cut off
     var padding = 50;
 
-    //Space between adjacent columns
+    //Space between adjacent columns (years)
     var spaceBetween = 10;
 
-    //Create SVG element
     var svg = d3.select('#graph');
     var yAxis = d3.select('#y-axis');
-
     var $graph = $('#graph');
     var width,
         height,
@@ -32,18 +30,59 @@
 
     $(window).resize(redrawSVG);
 
-    //Load in JSON data
-    d3.json('data/nino34.json', function(years) {
-        nino34.data = years;
-        nino34.max = d3.max(years, function(year){
-            return d3.max(year.data, function (month) {
-                return Math.abs(month[1]);
-            });
-        });
-        jQuery.extend(true, currentENSO, nino34);
-        redrawSVG();
-    });
+    init();
 
+    /**
+     * Loads all data required (currently only Niño 3.4) and sets default
+     * display data (currently defaults to display Niño 3.4)
+     */
+    function init() {
+        loadNino34();
+    }
+
+    /**
+     *  Load data for Niño 3.4
+     *  170W - 120W, 5N - 5S,
+     *  Jan 1950 - Jun 2016
+     */
+    function loadNino34() {
+        d3.json('data/nino34.json', function(years) {
+            nino34.data = years;
+            nino34.max = d3.max(years, function(year){
+                return d3.max(year.data, function (month) {
+                    return Math.abs(month[1]);
+                });
+            });
+            jQuery.extend(true, currentENSO, nino34);
+            redrawSVG();
+        });        
+    }
+
+    /**
+     * Loops through currentENSO variable to display all data associated,
+     * creates a circle, where radius is based on ONI value [-3, 3],
+     * hovering over a circle displays the corresponding ONI value
+     *
+     * @param  {array} data The currentENSO data to show in the format of
+     *                      [
+     *                          {
+     *                              'year': 1950,
+     *                              'data': [
+     *                                  [1, -1.41],
+     *                                  ...
+     *                                  [12, -0.89]
+     *                              ]
+     *                          },
+     *                          ...
+     *                          {
+     *                              'year': 2016,
+     *                              'data': [
+     *                                  [1, 2.23],
+     *                                  ...
+     *                                  [12, 0.00]
+     *                              ]
+     *                          }
+     */
     function displayData(data) {
         var currentYear = 0;
         var groupWidth = 2 * (currentENSO.scaledMax + spaceBetween/2);
@@ -51,8 +90,8 @@
     	for (var j = 0; j < data.length; j++) {
             currentYear = data[j]['year'];
     		var g = svg.append('g').attr('class', 'year')
-            .on('mouseover', mouseover)
-            .on('mouseout', mouseout);
+            .on('mouseover', showCurrentYearValues)
+            .on('mouseout',  hideCurrentYearValues);
 
     		var circles = g.selectAll('circle')
     			.data(data[j]['data'])
@@ -101,15 +140,15 @@
                 .attr('fill',      'transparent')
                 .attr('data-year', currentYear)
                 .on('click',       clickDataPoint)
-                .on('mouseenter',  showCurrentMonth)
-                .on('mouseleave',  hideCurrentMonth);
+                .on('mouseenter',  showCurrentMonthValues)
+                .on('mouseleave',  hideCurrentMonthValues);
     	};
 
     	/**
     	 * Called when entering invisible box for each year,
          * displays the associated values for that year
     	 */
-    	function mouseover() {
+    	function showCurrentYearValues() {
     		var g = d3.select(this).node();
     		d3.select(g).selectAll('circle').style('opacity', '0');
     		d3.select(g).selectAll('text.value').style('opacity', '1');
@@ -118,7 +157,7 @@
     	/**
     	 * Called when leaving the invisible box for each year
     	 */
-    	function mouseout() {
+    	function hideCurrentYearValues() {
     		var g = d3.select(this).node();
     		d3.select(g).selectAll('circle').style('opacity', '1');
     		d3.select(g).selectAll('text.value').style('opacity','0');
@@ -127,7 +166,7 @@
         /**
          * Called whenever the user clicks a text element
          *
-         * @param  {array}   data  Data element clicked - [month, value]
+         * @param  {array} data  Data element clicked - [month, value]
          * @param  {integer} index Index of element clicked
          */
         function clickDataPoint(data, index) {
@@ -137,12 +176,12 @@
         }
 
         /**
-         * Shows all of the points in a given row/month
+         * Shows all of the points in a given row (month)
          *
-         * @param  {array} d     data being passed in
-         * @param  {integer} index index of element
+         * @param  {array} d    Current hover element data [monthIndex, value]
+         * @param  {integer} index Index of data point from top (0 -> Jan, 11 -> Dec)
          */
-        function showCurrentMonth(d, index) {
+        function showCurrentMonthValues(d, index) {
             var month = index + 1;
 
             //Hide all circles for same month
@@ -152,7 +191,7 @@
                 }
             });
 
-            //Show all text for same month
+            //Show all values for same month
             d3.selectAll('text.value').each(function(data){
                 if (data[0] === month) {
                     d3.select(this).style('opacity', '1');
@@ -160,14 +199,13 @@
             });
         }
 
-
         /**
          * Hides all of the points in a given row/month
          *
-         * @param  {array} d     data being passed in
-         * @param  {integer} index index of element
+         * @param  {array} d     Current hover element data [monthIndex, value]
+         * @param  {integer} index Index of data point from top (0 -> Jan, 11 -> Dec)
          */
-        function hideCurrentMonth(d, index) {
+        function hideCurrentMonthValues(d, index) {
             var month = index + 1;
 
             //Shows all circles for same month
@@ -177,7 +215,7 @@
                 }
             });
 
-            //Hides all text for same month
+            //Hides all values for same month
             d3.selectAll('text.value').each(function(data){
                 if (data[0] === month) {
                     d3.select(this).style('opacity', '0');
@@ -196,7 +234,6 @@
         createAxes();
         displayData(currentENSO.data);
     }
-
 
     /**
      * Removes graph and y-axis before redrawing
