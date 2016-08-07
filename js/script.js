@@ -55,7 +55,7 @@
             });
             jQuery.extend(true, currentENSO, nino34);
             redrawSVG();
-        });        
+        });
     }
 
     /**
@@ -183,12 +183,17 @@
          */
         function showCurrentMonthValues(d, index) {
             var month = index + 1;
+            var $this, oldClass;
 
             //Hide all circles for same month
             d3.selectAll('circle').each(function(data){
                 if (data[0] === month) {
                     d3.select(this).style('opacity', '0');
                 }
+                $this = d3.select(this);
+                oldClass = $this.attr('class');
+                d3.select(this).attr('class', oldClass + ' fade');
+
             });
 
             //Show all values for same month
@@ -207,12 +212,16 @@
          */
         function hideCurrentMonthValues(d, index) {
             var month = index + 1;
+            var $this, oldClass;
 
             //Shows all circles for same month
             d3.selectAll('circle').each(function(data){
                 if (data[0] === month) {
                     d3.select(this).style('opacity', '1');
                 }
+                $this = d3.select(this);
+                oldClass = $this.attr('class');
+                d3.select(this).attr('class', oldClass.substring(0, oldClass.length - 5));
             });
 
             //Hides all values for same month
