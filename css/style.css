@@ -1,11 +1,7 @@
-text {
-    font-family: 'Lato';
-}
-
+/* HTML Positioning and Layout */
 body {
     margin: 0;
     padding: 0;
-
 }
 
 main {
@@ -25,7 +21,6 @@ main {
     width: 4em;
 
     border-right: 1px solid black;
-
 }
 
 .container.right {
@@ -42,6 +37,12 @@ main {
 #graph {
     width: 6000px;
     height: 100%;
+}
+
+/* SVG styling */
+
+text {
+    font-family: 'Lato', sans-serif;
 }
 
 g.tick line {
@@ -61,48 +62,25 @@ text.value {
     opacity: 0;
 }
 
-text.value:hover {
-    cursor: crosshair;
-}
-
 .axis {
     font-size: 1em;
 }
 
 circle {
     opacity: 1;
+    transition: opacity 0.1s;
 }
 
-circle.hide {
-    opacity: 0;
+text.value {
+    transition: opacity 0.1s;
 }
 
-.level-0 {
-    fill: #2166ac;
-    stroke #2166ac;
-}
 
-.level-1 {
-    fill: #67a9cf;
-    stroke #67a9cf;
-}
+@media only screen and (max-width: 1200px) {
 
-.level-2{
-    fill: #d1e5f0;
-    stroke #d1e5f0;
-}
+   .axis,
+   text.value {
+       font-size: 0.75em;
+   }
 
-.level-3{
-    fill: #fddbc7;
-    stroke #fddbc7;
-}
-
-.level-4{
-    fill: #ef8a62;
-    stroke #ef8a62;
-}
-
-.level-5{
-    fill: #b2182b;
-    stroke #b2182b;
 }
