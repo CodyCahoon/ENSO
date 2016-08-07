@@ -68,7 +68,7 @@ text.value {
 
 circle {
     opacity: 1;
-    transition: opacity 0.1s;
+    transition: opacity 0.1s, fill 1.2s;
 }
 
 text.value {
@@ -80,5 +80,21 @@ text.value {
    .axis,
    text.value {
        font-size: 0.75em;
+   }
+}
+
+@media only screen and (max-height: 725px) {
+
+   .axis,
+   text.value {
+       font-size: 0.75em;
+   }
+}
+
+@media only screen and (max-height: 550px) {
+
+   .axis,
+   text.value {
+       font-size: 0.6em;
    }
 }
