@@ -28,9 +28,27 @@
         yScale,
         rScale;
 
-    $(window).resize(redrawSVG);
+    $(document).ready(function(){
+        var $body = $('body');
 
-    init();
+        $(window).resize(redrawSVG);
+
+        //Event Handlers for the bounding boxes for each circle + text
+        $body.on('click', '.bounding-box', clickDataPoint);
+        $body.on('mouseenter', '.bounding-box', showCurrentMonthValues);
+        $body.on('mouseleave', '.bounding-box', hideCurrentMonthValues);
+
+        //Event handlers for entire graph
+        $body.on('mouseenter', '#graph', toggleCircleVisibility);
+        $body.on('mouseleave', '#graph', toggleCircleVisibility);
+
+        //Event handlers for each year
+        $body.on('mouseenter', '.year', showCurrentYearValues);
+        $body.on('mousemove', '.year', showCurrentYearValues);
+        $body.on('mouseleave', '.year', hideCurrentYearValues);
+
+        init();
+    });
 
     /**
      * Loads all data required (currently only Niño 3.4) and sets default
@@ -89,9 +107,9 @@
 
     	for (var j = 0; j < data.length; j++) {
             currentYear = data[j]['year'];
-    		var g = svg.append('g').attr('class', 'year')
-            .on('mouseover', showCurrentYearValues)
-            .on('mouseout',  hideCurrentYearValues);
+
+    		var g = svg.append('g')
+                .attr('class', 'year');
 
     		var circles = g.selectAll('circle')
     			.data(data[j]['data'])
@@ -117,20 +135,14 @@
     		text
     			.attr('x', function(d) {
                     var x = xScale(currentYear);
-                    return d[1] >= 0 ? x - 23 : x - 20;
+                    return d[1] >= 0 ? x - 22 : x - 19;
                 })
     			.attr('y', function(d) { return yScale(d[0]) + 5})
     			.text(function(d){
                     var value = d[1].toFixed(2);
                     return value >= 0 ? '+' + value : value;
                 })
-                .attr('class', function (d) {
-                    if (d[1] < 0) {
-                        return 'value level-1';
-                    } else {
-                        return 'value level-4';
-                    }
-                });
+                .attr('class', function(d) { return 'value ' + colorScale(d[1])});
 
             bounds
     			.attr('x', xScale(currentYear) - currentENSO.scaledMax - spaceBetween)
@@ -139,98 +151,89 @@
                 .attr('height',    function() { return currentENSO.scaledMax * 2; })
                 .attr('fill',      'transparent')
                 .attr('data-year', currentYear)
-                .on('click',       clickDataPoint)
-                .on('mouseenter',  showCurrentMonthValues)
-                .on('mouseleave',  hideCurrentMonthValues);
-    	};
-
-    	/**
-    	 * Called when entering invisible box for each year,
-         * displays the associated values for that year
-    	 */
-    	function showCurrentYearValues() {
-    		var g = d3.select(this).node();
-    		d3.select(g).selectAll('circle').style('opacity', '0');
-    		d3.select(g).selectAll('text.value').style('opacity', '1');
+                .attr('data-month', function(d){ return d[0]})
+                .attr('class',     'bounding-box');
     	}
+    }
 
-    	/**
-    	 * Called when leaving the invisible box for each year
-    	 */
-    	function hideCurrentYearValues() {
-    		var g = d3.select(this).node();
-    		d3.select(g).selectAll('circle').style('opacity', '1');
-    		d3.select(g).selectAll('text.value').style('opacity','0');
-    	}
+    /**
+     * Called whenever the user clicks the currently hovered value
+     */
+    function clickDataPoint() {
+        var index = d3.select(this).attr('data-month') - 1;
+        var month = monthNames[index];
+        var year = d3.select(this).attr('data-year');
+        console.log(month, year);
+    }
 
-        /**
-         * Called whenever the user clicks a text element
-         *
-         * @param  {array} data  Data element clicked - [month, value]
-         * @param  {integer} index Index of element clicked
-         */
-        function clickDataPoint(data, index) {
-            var month = monthNames[index];
-            var year = $(this).attr('data-year');
-            console.log(month, year);
-        }
+    /**
+     * Called when entering invisible box for each year,
+     * displays the associated values for that year
+     */
+    function showCurrentYearValues() {
+        var g = d3.select(this).node();
+        d3.select(g).selectAll('circle').style('opacity', '0');
+        d3.select(g).selectAll('text.value').style('opacity', '1');
+    }
 
-        /**
-         * Shows all of the points in a given row (month)
-         *
-         * @param  {array} d    Current hover element data [monthIndex, value]
-         * @param  {integer} index Index of data point from top (0 -> Jan, 11 -> Dec)
-         */
-        function showCurrentMonthValues(d, index) {
-            var month = index + 1;
-            var $this, oldClass;
+    /**
+     * Called when leaving the invisible box for each year
+     */
+    function hideCurrentYearValues() {
+        var g = d3.select(this).node();
+        d3.select(g).selectAll('circle').style('opacity', '1');
+        d3.select(g).selectAll('text.value').style('opacity','0');
+    }
 
-            //Hide all circles for same month
-            d3.selectAll('circle').each(function(data){
-                if (data[0] === month) {
-                    d3.select(this).style('opacity', '0');
-                }
-                $this = d3.select(this);
-                oldClass = $this.attr('class');
-                d3.select(this).attr('class', oldClass + ' fade');
+    /**
+     * Shows all of the points in a given row (month)
+     */
+    function showCurrentMonthValues() {
+        var month = d3.select(this).attr('data-month');
+        console.log(month);
 
-            });
+        //Hide all circles for same month
+        d3.selectAll('circle').each(function(data){
+            if (data[0] == month) {
+                d3.select(this).style('opacity', '0');
+            }
+        });
 
-            //Show all values for same month
-            d3.selectAll('text.value').each(function(data){
-                if (data[0] === month) {
-                    d3.select(this).style('opacity', '1');
-                }
-            });
-        }
+        //Show all values for same month
+        d3.selectAll('text.value').each(function(data){
+            if (data[0] == month) {
+                d3.select(this).style('opacity', '1');
+            }
+        });
+    }
 
-        /**
-         * Hides all of the points in a given row/month
-         *
-         * @param  {array} d     Current hover element data [monthIndex, value]
-         * @param  {integer} index Index of data point from top (0 -> Jan, 11 -> Dec)
-         */
-        function hideCurrentMonthValues(d, index) {
-            var month = index + 1;
-            var $this, oldClass;
+    /**
+     * Hides all of the points in a given row/month
+     */
+    function hideCurrentMonthValues() {
+        var month = d3.select(this).attr('data-month');
 
-            //Shows all circles for same month
-            d3.selectAll('circle').each(function(data){
-                if (data[0] === month) {
-                    d3.select(this).style('opacity', '1');
-                }
-                $this = d3.select(this);
-                oldClass = $this.attr('class');
-                d3.select(this).attr('class', oldClass.substring(0, oldClass.length - 5));
-            });
+        //Shows all circles for same month
+        d3.selectAll('circle').each(function(data){
+            if (data[0] == month) {
+                d3.select(this).style('opacity', '1');
+             }
+        });
 
-            //Hides all values for same month
-            d3.selectAll('text.value').each(function(data){
-                if (data[0] === month) {
-                    d3.select(this).style('opacity', '0');
-                }
-            });
-        }
+        //Hides all values for same month
+        d3.selectAll('text.value').each(function(data){
+            if (data[0] == month) {
+                d3.select(this).style('opacity', '0');
+            }
+        });
+    }
+
+
+    /**
+     * Fades in/out all circles on the graph
+     */
+    function toggleCircleVisibility() {
+        $('circle').toggleClass('fade');
     }
 
     /**

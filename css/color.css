@@ -30,30 +30,24 @@
 
 .level-0.fade {
     fill: rgba(33, 102, 172, 0.25);
-    stroke: rgba(33, 102, 172, 0.25);
 }
 
 .level-1.fade {
     fill: rgba(103, 169, 207, 0.25);
-    stroke: rgba(103, 169, 207, 0.25);
 }
 
 .level-2.fade {
     fill: rgba(209, 229, 240, 0.25);
-    stroke: rgba(209, 229, 240, 0.25);
 }
 
 .level-3.fade {
     fill: rgba(253, 219, 199, 0.25);
-    stroke: rgba(253, 219, 199, 0.25);
 }
 
 .level-4.fade {
     fill: rgba(239, 138, 98, 0.25);
-    stroke: rgba(239, 138, 98, 0.25);
 }
 
 .level-5.fade {
     fill: rgba(178, 24, 43, 0.25);
-    stroke: rgba(178, 24, 43, 0.25);
 }
