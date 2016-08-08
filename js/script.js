@@ -44,6 +44,7 @@
 
         //Event handlers for each year
         $body.on('mouseenter', '.year', showCurrentYearValues);
+        $body.on('mousemove', '.year', showCurrentYearValues);
         $body.on('mouseleave', '.year', hideCurrentYearValues);
 
         init();
@@ -195,6 +196,7 @@
      */
     function showCurrentMonthValues() {
         var month = d3.select(this).attr('data-month');
+        console.log(month);
 
         //Hide all circles for same month
         d3.selectAll('circle').each(function(data){
