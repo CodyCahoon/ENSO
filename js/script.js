@@ -142,13 +142,7 @@
                     var value = d[1].toFixed(2);
                     return value >= 0 ? '+' + value : value;
                 })
-                .attr('class', function (d) {
-                    if (d[1] < 0) {
-                        return 'value level-1';
-                    } else {
-                        return 'value level-4';
-                    }
-                });
+                .attr('class', function(d) { return 'value ' + colorScale(d[1])});
 
             bounds
     			.attr('x', xScale(currentYear) - currentENSO.scaledMax - spaceBetween)
