@@ -34,7 +34,7 @@
         $(window).resize(redrawSVG);
 
         //Event Handlers for the bounding boxes for each circle + text
-        $body.on('click', '.bounding-box', clickDataPoint);
+        $body.on('click',      '.bounding-box', clickDataPoint);
         $body.on('mouseenter', '.bounding-box', showCurrentMonthValues);
         $body.on('mouseleave', '.bounding-box', hideCurrentMonthValues);
 
@@ -44,8 +44,10 @@
 
         //Event handlers for each year
         $body.on('mouseenter', '.year', showCurrentYearValues);
-        $body.on('mousemove', '.year', showCurrentYearValues);
+        $body.on('mousemove',  '.year', showCurrentYearValues);
         $body.on('mouseleave', '.year', hideCurrentYearValues);
+
+        $("button").click(filterData);
 
         init();
     });
@@ -101,7 +103,8 @@
      *                              ]
      *                          }
      */
-    function displayData(data) {
+    function drawGraph() {
+        var data = currentENSO.data;
         var currentYear = 0;
         var groupWidth = 2 * (currentENSO.scaledMax + spaceBetween/2);
 
@@ -190,7 +193,6 @@
      */
     function showCurrentMonthValues() {
         var month = d3.select(this).attr('data-month');
-        console.log(month);
 
         //Hide all circles for same month
         d3.selectAll('circle').each(function(data){
@@ -244,7 +246,7 @@
         clearSVG();
         updateScales();
         createAxes();
-        displayData(currentENSO.data);
+        drawGraph();
     }
 
     /**
@@ -268,7 +270,7 @@
 
         currentENSO.scaledMax = rScale(currentENSO.max);
 
-        width = (currentENSO.data.length * currentENSO.scaledMax * 2) + spaceBetween;
+        width = currentENSO.data.length * (currentENSO.scaledMax * 2 + spaceBetween);
         $graph.width(width);
 
         xScale = d3.scaleLinear()
@@ -293,7 +295,7 @@
      */
     function createXAxis() {
         var x = d3.axisTop(xScale)
-            .ticks(yearRange.end - yearRange.start)
+            .ticks(currentENSO.data.length)
             .tickFormat(function(d) {
                 return d.toString();
             });
@@ -317,5 +319,31 @@
     		.attr('class', 'y axis')
     		.attr('transform', 'translate(50, 0)')
     		.call(y);
+    }
+
+    function filterData() {
+        currentENSO.data = currentENSO.data.filter(function(value) {
+            return value.year % 2 === 0;
+        });
+        setCurrentEnsoMax();
+        setYearRange();
+        redrawSVG();
+    }
+
+    function setCurrentEnsoMax() {
+        currentENSO.max = d3.max(currentENSO.data, function(year){
+            return d3.max(year.data, function (month) {
+                return Math.abs(month[1]);
+            });
+        });
+    }
+
+    function setYearRange() {
+        yearRange.start = d3.min(currentENSO.data, function(year){
+            return year.year;
+        });
+        yearRange.end = d3.max(currentENSO.data, function(year){
+            return year.year;
+        });
     }
 })();
