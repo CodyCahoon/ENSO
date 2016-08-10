@@ -1,6 +1,10 @@
 (function(){
     'use strict';
 
+    /*******************************************************************
+     *                            VARIABLES                            *
+     *******************************************************************/
+
     //Current displayed value in chart
     var currentENSO = {
         data: null,
@@ -28,13 +32,17 @@
         yScale,
         rScale;
 
+    /*******************************************************************
+     *                       SET EVENT HANDLERS                        *
+     *******************************************************************/
+
     $(document).ready(function(){
         var $body = $('body');
 
         $(window).resize(redrawSVG);
 
         //Event Handlers for the bounding boxes for each circle + text
-        $body.on('click',      '.bounding-box', clickDataPoint);
+        $body.on('click',      '.bounding-box', clickMonthAndYear);
         $body.on('mouseenter', '.bounding-box', showCurrentMonthValues);
         $body.on('mouseleave', '.bounding-box', hideCurrentMonthValues);
 
@@ -52,6 +60,10 @@
         init();
     });
 
+    /*******************************************************************
+     *                           DATA MODEL                            *
+     *******************************************************************/
+
     /**
      * Loads all data required (currently only Niño 3.4) and sets default
      * display data (currently defaults to display Niño 3.4)
@@ -67,6 +79,7 @@
      */
     function loadNino34() {
         d3.json('data/nino34.json', function(years) {
+            nino34.originalData = years;
             nino34.data = years;
             nino34.max = d3.max(years, function(year){
                 return d3.max(year.data, function (month) {
@@ -77,6 +90,10 @@
             redrawSVG();
         });
     }
+
+    /*******************************************************************
+     *                      DISPLAYING DATA                            *
+     *******************************************************************/
 
     /**
      * Loops through currentENSO variable to display all data associated,
@@ -130,14 +147,14 @@
     			.append('rect');
 
             circles
-    			.attr('cx', xScale(currentYear))
+    			.attr('cx', xScale(j))
     			.attr('cy',    function(d) { return yScale(d[0])})
     			.attr('r',     function(d) { return rScale(Math.abs(d[1])); })
                 .attr('class', function(d) { return colorScale(d[1])})
 
     		text
     			.attr('x', function(d) {
-                    var x = xScale(currentYear);
+                    var x = xScale(j);
                     return d[1] >= 0 ? x - 22 : x - 19;
                 })
     			.attr('y', function(d) { return yScale(d[0]) + 5})
@@ -148,7 +165,7 @@
                 .attr('class', function(d) { return 'value ' + colorScale(d[1])});
 
             bounds
-    			.attr('x', xScale(currentYear) - currentENSO.scaledMax - spaceBetween)
+    			.attr('x', xScale(j) - currentENSO.scaledMax - spaceBetween)
     			.attr('y',        function(d) { return yScale(d[0]) - currentENSO.scaledMax})
     			.attr('width',     function() { return currentENSO.scaledMax * 2 + spaceBetween; })
                 .attr('height',    function() { return currentENSO.scaledMax * 2; })
@@ -160,9 +177,96 @@
     }
 
     /**
+     * Clears out old drawing, update scales, and redraws
+     * axis and data points for current selection (nino34 only so far)
+     */
+    function redrawSVG() {
+        clearSVG();
+        updateScales();
+        createAxes();
+        drawGraph();
+    }
+
+    /**
+     * Removes graph and y-axis before redrawing
+     */
+    function clearSVG() {
+        svg.selectAll('*').remove();
+        yAxis.selectAll('*').remove();
+    }
+
+    /**
+     * Updates the width & height of container to reposition
+     * axis and data points
+     */
+    function updateScales() {
+        height = $graph.height();
+
+        rScale = d3.scaleLinear()
+            .domain([0, currentENSO.max])
+            .range([0.5, (height - (2*padding)) / 22]);
+
+        currentENSO.scaledMax = rScale(currentENSO.max);
+
+        width = currentENSO.data.length * ((currentENSO.scaledMax + spaceBetween) * 2);
+        $graph.width(width);
+
+        xScale = d3.scaleLinear()
+            .domain([0, currentENSO.data.length - 1])
+            .range([padding, width - padding]);
+
+        yScale = d3.scaleLinear()
+            .domain([1, 12])
+            .range([padding, height - padding]);
+    }
+
+    /**
+     * Creates x-axis and y-axis
+     */
+    function createAxes() {
+        createXAxis();
+        createYAxis();
+    }
+
+    /**
+     * Creates x-axis
+     */
+    function createXAxis() {
+        var x = d3.axisTop(xScale)
+            .ticks(currentENSO.data.length)
+            .tickFormat(function(index) {
+                return currentENSO.data[index].year.toString();
+            });
+
+    	svg.append('g')
+    		.attr('class', 'x axis')
+            .attr('transform', 'translate(0, 25)')
+    		.call(x);
+    }
+
+    /**
+     * Creates y-axis
+     */
+    function createYAxis() {
+        var y = d3.axisLeft(yScale)
+            .tickFormat(function (d) {
+                return monthNames[d - 1];
+            });
+
+    	yAxis.append('g')
+    		.attr('class', 'y axis')
+    		.attr('transform', 'translate(50, 0)')
+    		.call(y);
+    }
+
+    /*******************************************************************
+     *                    EVENT HANDLERS FUNCTIONS                     *
+     *******************************************************************/
+
+    /**
      * Called whenever the user clicks the currently hovered value
      */
-    function clickDataPoint() {
+    function clickMonthAndYear() {
         var index = d3.select(this).attr('data-month') - 1;
         var month = monthNames[index];
         var year = d3.select(this).attr('data-year');
@@ -230,7 +334,6 @@
         });
     }
 
-
     /**
      * Fades in/out all circles on the graph
      */
@@ -238,92 +341,17 @@
         $('circle').toggleClass('fade');
     }
 
-    /**
-     * Clears out old drawing, update scales, and redraws
-     * axis and data points for current selection (nino34 only so far)
-     */
-    function redrawSVG() {
-        clearSVG();
-        updateScales();
-        createAxes();
-        drawGraph();
-    }
+    /*******************************************************************
+     *                         FILTERING DATA                          *
+     *******************************************************************/
+
 
     /**
-     * Removes graph and y-axis before redrawing
+     * Filters the data based on user input (currently random years are shown)
      */
-    function clearSVG() {
-        svg.selectAll('*').remove();
-        yAxis.selectAll('*').remove();
-    }
-
-    /**
-     * Updates the width & height of container to reposition
-     * axis and data points
-     */
-    function updateScales() {
-        height = $graph.height();
-
-        rScale = d3.scaleLinear()
-            .domain([0, currentENSO.max])
-            .range([0.5, (height - (2*padding)) / 22]);
-
-        currentENSO.scaledMax = rScale(currentENSO.max);
-
-        width = currentENSO.data.length * (currentENSO.scaledMax * 2 + spaceBetween);
-        $graph.width(width);
-
-        xScale = d3.scaleLinear()
-            .domain([yearRange.start, yearRange.end])
-            .range([padding, width - padding]);
-
-        yScale = d3.scaleLinear()
-            .domain([1, 12])
-            .range([padding, height - padding]);
-    }
-
-    /**
-     * Creates x-axis and y-axis
-     */
-    function createAxes() {
-        createXAxis();
-        createYAxis();
-    }
-
-    /**
-     * Creates x-axis
-     */
-    function createXAxis() {
-        var x = d3.axisTop(xScale)
-            .ticks(currentENSO.data.length)
-            .tickFormat(function(d) {
-                return d.toString();
-            });
-
-    	svg.append('g')
-    		.attr('class', 'x axis')
-            .attr('transform', 'translate(0, 25)')
-    		.call(x);
-    }
-
-    /**
-     * Creates y-axis
-     */
-    function createYAxis() {
-        var y = d3.axisLeft(yScale)
-            .tickFormat(function (d) {
-                return monthNames[d - 1];
-            });
-
-    	yAxis.append('g')
-    		.attr('class', 'y axis')
-    		.attr('transform', 'translate(50, 0)')
-    		.call(y);
-    }
-
     function filterData() {
-        currentENSO.data = currentENSO.data.filter(function(value) {
-            return value.year % 2 === 0;
+        currentENSO.data = currentENSO.originalData.filter(function(value) {
+            return value.year % (parseInt(Math.random() * 3)) === 0;
         });
         setCurrentEnsoMax();
         setYearRange();
