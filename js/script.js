@@ -129,19 +129,24 @@
             currentYear = data[j]['year'];
 
     		var g = svg.append('g')
-                .attr('class', 'year');
+                .attr('class', 'year')
 
-    		var circles = g.selectAll('circle')
+    		var circles = g.selectAll('circle.mag')
     			.data(data[j]['data'])
     			.enter()
     			.append('circle');
 
-    		var text = g.selectAll('text')
+    		var text = g.selectAll('text.value')
     			.data(data[j]['data'])
     			.enter()
     			.append('text');
 
-            var bounds = g.selectAll('rect')
+            var hoverCircles = g.selectAll('circle.hover')
+    			.data(data[j]['data'])
+    			.enter()
+    			.append('circle');
+
+            var bounds = g.selectAll('rect.bounding-box')
                 .data(data[j]['data'])
     			.enter()
     			.append('rect');
@@ -150,7 +155,7 @@
     			.attr('cx', xScale(j))
     			.attr('cy',    function(d) { return yScale(d[0])})
     			.attr('r',     function(d) { return rScale(Math.abs(d[1])); })
-                .attr('class', function(d) { return colorScale(d[1])})
+                .attr('class', function(d) { return 'mag ' + colorScale(d[1])})
 
     		text
     			.attr('x', function(d) {
@@ -164,10 +169,17 @@
                 })
                 .attr('class', function(d) { return 'value ' + colorScale(d[1])});
 
+            hoverCircles
+    			.attr('cx', xScale(j))
+    			.attr('cy',    function(d) { return yScale(d[0])})
+    			.attr('r',     function(d) { return rScale(currentENSO.max) })
+                .attr('class', function(d) { return 'hover ' + colorScale(d[1])})
+                .attr('data-year', currentYear);
+
             bounds
     			.attr('x', xScale(j) - currentENSO.scaledMax - spaceBetween)
     			.attr('y',        function(d) { return yScale(d[0]) - currentENSO.scaledMax})
-    			.attr('width',     function() { return currentENSO.scaledMax * 2 + spaceBetween; })
+    			.attr('width',     function() { return (currentENSO.scaledMax + spaceBetween) * 2; })
                 .attr('height',    function() { return currentENSO.scaledMax * 2; })
                 .attr('fill',      'transparent')
                 .attr('data-year', currentYear)
@@ -279,7 +291,7 @@
      */
     function showCurrentYearValues() {
         var g = d3.select(this).node();
-        d3.select(g).selectAll('circle').style('opacity', '0');
+        d3.select(g).selectAll('circle.mag').style('opacity', '0');
         d3.select(g).selectAll('text.value').style('opacity', '1');
     }
 
@@ -288,18 +300,21 @@
      */
     function hideCurrentYearValues() {
         var g = d3.select(this).node();
-        d3.select(g).selectAll('circle').style('opacity', '1');
+        d3.select(g).selectAll('circle.mag').style('opacity', '1');
         d3.select(g).selectAll('text.value').style('opacity','0');
     }
 
     /**
      * Shows all of the points in a given row (month)
      */
-    function showCurrentMonthValues() {
-        var month = d3.select(this).attr('data-month');
+    function showCurrentMonthValues(evt, a, b) {
+        var $this = d3.select(this);
+
+        var year = $this.attr('data-year');
+        var month = $this.attr('data-month');
 
         //Hide all circles for same month
-        d3.selectAll('circle').each(function(data){
+        d3.selectAll('circle.mag').each(function(data){
             if (data[0] == month) {
                 d3.select(this).style('opacity', '0');
             }
@@ -311,6 +326,15 @@
                 d3.select(this).style('opacity', '1');
             }
         });
+
+        //Show hover circle for current month and year
+        d3.selectAll('circle.hover').each(function(data){
+            var $this = d3.select(this);
+            var cYear = $this.attr('data-year');
+            if (cYear === year && data[0] == month) {
+                $this.style('opacity', '1');
+            }
+        });
     }
 
     /**
@@ -320,7 +344,7 @@
         var month = d3.select(this).attr('data-month');
 
         //Shows all circles for same month
-        d3.selectAll('circle').each(function(data){
+        d3.selectAll('circle.mag').each(function(data){
             if (data[0] == month) {
                 d3.select(this).style('opacity', '1');
              }
@@ -332,13 +356,16 @@
                 d3.select(this).style('opacity', '0');
             }
         });
+
+        //Hide hover circle for current month and year
+        d3.selectAll('circle.hover').style('opacity', '0');
     }
 
     /**
      * Fades in/out all circles on the graph
      */
     function toggleCircleVisibility() {
-        $('circle').toggleClass('fade');
+        $('circle.mag').toggleClass('fade');
     }
 
     /*******************************************************************
