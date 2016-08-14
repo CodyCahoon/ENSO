@@ -122,11 +122,13 @@
      */
     function drawGraph() {
         var data = currentENSO.data;
-        var currentYear = 0;
+        var currentYear = 0,
+            yearClass = '';
         var groupWidth = 2 * (currentENSO.scaledMax + spaceBetween/2);
 
     	for (var j = 0; j < data.length; j++) {
             currentYear = data[j]['year'];
+            yearClass = 'year-' + currentYear;
 
     		var g = svg.append('g')
                 .attr('class', 'year')
@@ -155,7 +157,10 @@
     			.attr('cx', xScale(j))
     			.attr('cy',    function(d) { return yScale(d[0])})
     			.attr('r',     function(d) { return rScale(Math.abs(d[1])); })
-                .attr('class', function(d) { return 'mag ' + colorScale(d[1])})
+                .attr('class', function(d) {
+                    var classes = yearClass + ' month-' + d[0] + ' mag ' + colorScale(d[1]);
+                    return classes;}
+                );
 
     		text
     			.attr('x', function(d) {
@@ -167,14 +172,20 @@
                     var value = d[1].toFixed(2);
                     return value >= 0 ? '+' + value : value;
                 })
-                .attr('class', function(d) { return 'value ' + colorScale(d[1])});
+                .attr('class', function(d) {
+                    var classes = yearClass + ' month-' + d[0] + ' value ' + colorScale(d[1]);
+                    return classes;}
+                );
 
             hoverCircles
     			.attr('cx', xScale(j))
     			.attr('cy',    function(d) { return yScale(d[0])})
     			.attr('r',     function(d) { return rScale(currentENSO.max) })
-                .attr('class', function(d) { return 'hover ' + colorScale(d[1])})
-                .attr('data-year', currentYear);
+                .attr('data-year', currentYear)
+                .attr('class', function(d) {
+                    var classes = yearClass + ' month-' + d[0] + ' hover ' + colorScale(d[1]);
+                    return classes;}
+                );
 
             bounds
     			.attr('x', xScale(j) - currentENSO.scaledMax - spaceBetween)
@@ -310,52 +321,30 @@
     function showCurrentMonthValues(evt, a, b) {
         var $this = d3.select(this);
 
-        var year = $this.attr('data-year');
-        var month = $this.attr('data-month');
+        var year = '.year-' + $this.attr('data-year');
+        var month = '.month-' + $this.attr('data-month');
 
         //Hide all circles for same month
-        d3.selectAll('circle.mag').each(function(data){
-            if (data[0] == month) {
-                d3.select(this).style('opacity', '0');
-            }
-        });
+        d3.selectAll('circle.mag' + month).style('opacity', '0');
 
         //Show all values for same month
-        d3.selectAll('text.value').each(function(data){
-            if (data[0] == month) {
-                d3.select(this).style('opacity', '1');
-            }
-        });
+        d3.selectAll('text.value' + month).style('opacity', '1');
 
         //Show hover circle for current month and year
-        d3.selectAll('circle.hover').each(function(data){
-            var $this = d3.select(this);
-            var cYear = $this.attr('data-year');
-            if (cYear === year && data[0] == month) {
-                $this.style('opacity', '1');
-            }
-        });
+        d3.selectAll('circle.hover' + year + month).style('opacity', '1');
     }
 
     /**
      * Hides all of the points in a given row/month
      */
     function hideCurrentMonthValues() {
-        var month = d3.select(this).attr('data-month');
+        var month = '.month-' + d3.select(this).attr('data-month');
 
         //Shows all circles for same month
-        d3.selectAll('circle.mag').each(function(data){
-            if (data[0] == month) {
-                d3.select(this).style('opacity', '1');
-             }
-        });
+        d3.selectAll('circle.mag' + month).style('opacity', '1');
 
         //Hides all values for same month
-        d3.selectAll('text.value').each(function(data){
-            if (data[0] == month) {
-                d3.select(this).style('opacity', '0');
-            }
-        });
+        d3.selectAll('text.value' + month).style('opacity', '0');
 
         //Hide hover circle for current month and year
         d3.selectAll('circle.hover').style('opacity', '0');

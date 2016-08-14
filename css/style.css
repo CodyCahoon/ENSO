@@ -81,8 +81,8 @@ text.value {
 }
 
 circle.hover{
-    fill: transparent;
-    stroke: grey;
+    fill: rgba(0, 0, 0, 0.2);
+    stroke: none;
     opacity: 0;
 }
 
