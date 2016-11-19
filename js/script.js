@@ -17,6 +17,8 @@
         max : 0
     };
 
+    var selectedYears = [];
+
     //Inner padding for graph, prevents data points from being cut off
     var padding = 50;
 
@@ -31,6 +33,8 @@
         xScale,
         yScale,
         rScale;
+
+    var $filter = d3.select('.filter');
 
     /*******************************************************************
      *                       SET EVENT HANDLERS                        *
@@ -55,7 +59,9 @@
         $body.on('mousemove',  '.year', showCurrentYearValues);
         $body.on('mouseleave', '.year', hideCurrentYearValues);
 
-        $("button").click(filterData);
+        //Eventer Handlers for filtering by year
+        $body.on('keyup', 'input', addNewYear);
+        $body.on('click', '.year-selection > button', removeSelectedYear);
 
         init();
     });
@@ -287,6 +293,24 @@
      *******************************************************************/
 
     /**
+     *  Adds a new selected year on pressing enter in search bar
+     */
+    function addNewYear(event) {
+
+        // User presses 'Enter'
+        if (event.which == 13) {
+            let value = parseInt(d3.select(this).node().value);
+            let allowedYear = (value > 1949 && value < 2017);
+            let newYear = selectedYears.indexOf(value) === -1;
+            if (allowedYear && newYear) {
+                selectedYears.push(value);
+                selectedYears.sort();
+                displaySelectedYears();
+            }
+        }
+    }
+
+    /**
      * Called whenever the user clicks the currently hovered value
      */
     function clickMonthAndYear() {
@@ -294,6 +318,17 @@
         var month = monthNames[index];
         var year = d3.select(this).attr('data-year');
         console.log(month, year);
+    }
+
+    function displaySelectedYears() {
+        $filter.selectAll('.year-selection').remove();
+        for (let i = 0; i < selectedYears.length; i++) {
+            let year = selectedYears[i];
+            $filter.append('div')
+                .attr('class', 'year-selection')
+                .html('<span>' + year + '</span><button>X</button>');
+        }
+        filterData();
     }
 
     /**
@@ -350,6 +385,13 @@
         d3.selectAll('circle.hover').style('opacity', '0');
     }
 
+    function removeSelectedYear() {
+        let year = parseInt(d3.select(this.parentNode).select("span").html());
+        let index = selectedYears.indexOf(year);
+        selectedYears.splice(index, 1);
+        displaySelectedYears();
+    }
+
     /**
      * Fades in/out all circles on the graph
      */
@@ -363,12 +405,17 @@
 
 
     /**
-     * Filters the data based on user input (currently random years are shown)
+     * Filters the data based on user input
      */
     function filterData() {
-        currentENSO.data = currentENSO.originalData.filter(function(value) {
-            return value.year % (parseInt(Math.random() * 3)) === 0;
-        });
+        if (selectedYears.length > 0) {
+            currentENSO.data = currentENSO.originalData.filter(function(value) {
+                return selectedYears.indexOf(value.year) > -1;
+            });
+        } else {
+            currentENSO.data = currentENSO.originalData;
+        }
+
         setCurrentEnsoMax();
         setYearRange();
         redrawSVG();

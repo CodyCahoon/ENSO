@@ -9,7 +9,7 @@ body {
 main {
     height: 80vh;
     width: 80vw;
-    margin: 10vh auto;
+    margin: 5vh auto;
 }
 
 .container {
@@ -22,7 +22,7 @@ main {
     box-sizing: border-box;
     width: 4em;
 
-    border-right: 1px solid black;
+    border-right: 1px solid #464646;
 }
 
 .container.right {
@@ -41,13 +41,80 @@ main {
     height: 100%;
 }
 
-#graph:hover{
-    cursor: none;
+.filter {
+    width: 100vw;
+    height: 10vh;
+    padding: 10px 10vw;
+    box-sizing: border-box;
+}
+
+.year-selection {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 7%;
+    padding: 2px;
+    margin-right: 1px;
+
+    color: white;
+    background: #464646;
+    font-family: 'Lato', sans-serif;
+    text-align: center;
+}
+
+.year-selection > button {
+    border: none;
+    background: none;
+    margin-left: 3px;
+
+    color: white;
+    font-size: 1em;
+
+    transition: color 0.4s;
+}
+
+.year-selection > button:focus,
+.year-selection > button:active {
+    outline: none;
+}
+
+.search-filter {
+    display: inline-block;
+    height: 100%;
+    margin-right: 10px;
+}
+
+input[type=search] {
+    position: relative;
+    width: 100px;
+
+    color: #464646;
+    border: none;
+    font-size: 1em;
+}
+
+input[type=search]:focus,
+input[type=search]:active {
+    outline: none;
+}
+
+input[type=search]:focus + .search-line {
+    transform: scaleX(1);
+}
+
+.search-line {
+    margin-top: 3px;
+    height: 2px;
+    width: 100px;
+
+    background: #464646;
+    transform: scaleX(0);
+    transition: transform 0.3s;
 }
 /* SVG styling */
 
 text {
     font-family: 'Lato', sans-serif;
+    color: #464646;
 }
 
 g.tick line {
@@ -89,7 +156,8 @@ circle.hover{
 @media only screen and (max-width: 1200px) {
 
    .axis,
-   text.value {
+   text.value,
+   .year-selection {
        font-size: 0.75em;
    }
 }
@@ -97,7 +165,8 @@ circle.hover{
 @media only screen and (max-height: 725px) {
 
    .axis,
-   text.value {
+   text.value,
+   .year-selection {
        font-size: 0.75em;
    }
 }
@@ -105,7 +174,8 @@ circle.hover{
 @media only screen and (max-height: 550px) {
 
    .axis,
-   text.value {
+   text.value,
+   .year-selection {
        font-size: 0.6em;
    }
 }
