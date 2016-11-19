@@ -8,6 +8,12 @@
 
     <link href='https://fonts.googleapis.com/css?family=Lato:400,300' rel='stylesheet' type='text/css'>    </head>
     <body>
+        <div class="filter">
+            <div class="search-filter">
+                <input type="search" placeholder="Search..." />
+                <div class="search-line"></div>
+            </div>
+        </div>
         <main>
             <div class="container left">
                 <svg id="y-axis" class="axis"></svg>
@@ -16,8 +22,12 @@
                 <svg id="graph"></svg>
             </div>
         </main>
+
+        <!-- Libraries -->
         <script src="lib/jquery.min.js"></script>
         <script src="lib/d3.v4.min.js" charset="utf-8"></script>
+
+        <!-- Visualization -->
         <script src="js/constants.js"> </script>
         <script src="js/script.js"></script>
     </body>
